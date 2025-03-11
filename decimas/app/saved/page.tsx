@@ -56,26 +56,23 @@ export default function SavedDecimas() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">Mis Décimas Guardadas</h1>
-        <button
-          onClick={handleCreateNew}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded transition-colors"
-        >
-          Crear Nueva Décima
-        </button>
-      </div>
+    <div className="container mx-auto px-4">
+      <header className="text-center mb-6">
+        <h1 className="text-4xl font-bold text-gray-800 mb-2">Mis Décimas Guardadas</h1>
+        <p className="text-xl text-gray-600">
+          Revisa y edita tus décimas guardadas
+        </p>
+      </header>
       
       {/* Delete message */}
       {deleteMessage && (
-        <div className="mb-4 p-2 bg-green-50 text-green-700 rounded-lg text-center">
+        <div className="mb-6 p-3 bg-green-50 text-green-700 rounded-lg text-center">
           {deleteMessage}
         </div>
       )}
       
       {decimas.length === 0 ? (
-        <div className="text-center py-12 bg-gray-50 rounded-lg">
+        <div className="text-center py-12 bg-gray-50 rounded-lg shadow">
           <p className="text-gray-600 mb-4">No tienes décimas guardadas todavía.</p>
           <button
             onClick={handleCreateNew}

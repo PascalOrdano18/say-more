@@ -73,13 +73,29 @@ export default function DecimaEditor({ editId, initialTitle = '', initialVerses 
       return;
     }
     
-    // Save or update the decima
-    if (editId) {
-      updateDecima(editId, title, verses);
-      setSaveMessage('¡Décima actualizada con éxito!');
-    } else {
-      saveDecima(title, verses);
-      setSaveMessage('¡Décima guardada con éxito!');
+    try {
+      // Save or update the decima
+      if (editId) {
+        const updated = updateDecima(editId, title, verses);
+        if (updated) {
+          setSaveMessage('¡Décima actualizada con éxito! Puedes verla en "Guardadas"');
+        } else {
+          setSaveMessage('Error al actualizar la décima. Por favor, intenta de nuevo.');
+        }
+      } else {
+        const saved = saveDecima(title, verses);
+        if (saved) {
+          setSaveMessage('¡Décima guardada con éxito! Puedes verla en "Guardadas"');
+        } else {
+          setSaveMessage('Error al guardar la décima. Por favor, intenta de nuevo.');
+        }
+      }
+      
+      // Log storage status to console for debugging
+      console.log('Current storage:', localStorage.getItem('saved_decimas'));
+    } catch (error) {
+      console.error('Error saving decima:', error);
+      setSaveMessage('Ocurrió un error al guardar. ' + (error instanceof Error ? error.message : String(error)));
     }
   };
 
@@ -268,7 +284,7 @@ export default function DecimaEditor({ editId, initialTitle = '', initialVerses 
         
         {/* Save message */}
         {saveMessage && (
-          <div className="mt-3 p-2 bg-green-50 text-green-700 rounded-lg text-center">
+          <div className="mt-3 p-3 bg-green-50 text-green-700 rounded-lg text-center font-medium">
             {saveMessage}
           </div>
         )}
