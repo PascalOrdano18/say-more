@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useMemo } from 'react';
+import { getWordEnding } from '../utils/rhymeHelper';
 
 interface DecimaGraphProps {
   pattern: string;
@@ -18,6 +19,16 @@ const DecimaGraph: React.FC<DecimaGraphProps> = ({ pattern, verses, activeVerseI
     'C': '#8b5cf6', // Violet
     'D': '#f59e0b', // Amber
   }), []);
+  
+  // Extract rhyme endings for each verse
+  const getRhymeEndings = (verses: string[]): string[] => {
+    return verses.map(verse => {
+      if (!verse.trim()) return '';
+      const words = verse.split(' ');
+      const lastWord = words[words.length - 1] || '';
+      return getWordEnding(lastWord);
+    });
+  };
   
   // Calculate positions for each node in a circle
   const getNodePositions = (numNodes: number, radius: number, centerX: number, centerY: number) => {
@@ -67,6 +78,9 @@ const DecimaGraph: React.FC<DecimaGraphProps> = ({ pattern, verses, activeVerseI
     gradient.addColorStop(1, '#0f172a');
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, size, size);
+    
+    // Extract rhyme endings
+    const rhymeEndings = getRhymeEndings(verses);
     
     // Draw connections based on rhyme pattern
     const patternMap: Record<string, number[]> = {};
@@ -161,17 +175,25 @@ const DecimaGraph: React.FC<DecimaGraphProps> = ({ pattern, verses, activeVerseI
       
       // Draw circle with antialiasing
       ctx.beginPath();
-      ctx.arc(x, y, 22, 0, Math.PI * 2);
+      ctx.arc(x, y, 23, 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
       
-      // Draw number
+      // Draw number and rhyme ending
       ctx.shadowBlur = 0;
       ctx.fillStyle = i === activeVerseIndex ? '#334155' : '#ffffff';
       ctx.font = 'bold 16px Inter, system-ui, sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText((i + 1).toString(), x, y);
+      
+      // Draw node number at top
+      ctx.fillText((i + 1).toString(), x, y - 6);
+      
+      // Draw rhyme ending at bottom if available
+      if (rhymeEndings[i]) {
+        ctx.font = '10px Inter, system-ui, sans-serif';
+        ctx.fillText(rhymeEndings[i].toUpperCase(), x, y + 8);
+      }
     }
     
     // Draw title in the center
@@ -188,7 +210,7 @@ const DecimaGraph: React.FC<DecimaGraphProps> = ({ pattern, verses, activeVerseI
     // Draw caption at the bottom
     ctx.font = '14px Inter, system-ui, sans-serif';
     ctx.fillStyle = '#94a3b8';
-    ctx.fillText('Visualización del patrón de rima', centerX, centerY + radius + 35);
+    ctx.fillText('Visualización de rimas', centerX, centerY + radius + 35);
     
   }, [pattern, verses, activeVerseIndex, colors]);
   

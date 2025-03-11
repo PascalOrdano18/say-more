@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getDecimaById } from '../../utils/storage';
 import DecimaEditor from '../../components/DecimaEditor';
-import { use } from 'react';
 
 interface EditDecimaPageProps {
   params: {
@@ -19,8 +18,8 @@ export default function EditDecimaPage({ params }: EditDecimaPageProps) {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
   
-  // Safely access the id parameter
-  const id = use(Promise.resolve(params)).id;
+  // Access the id directly
+  const id = params.id;
 
   useEffect(() => {
     // Get the decima by ID

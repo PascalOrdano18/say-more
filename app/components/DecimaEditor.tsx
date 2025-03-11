@@ -180,11 +180,11 @@ export default function DecimaEditor({ editId, initialTitle = '', initialVerses 
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-[calc(100vh-240px)]">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
       {/* Left side - Verses input */}
-      <div className="flex flex-col h-full overflow-y-auto p-6 bg-white rounded-xl shadow-md">
+      <div className="flex flex-col bg-white rounded-xl shadow-md">
         {/* Title input */}
-        <div className="mb-6">
+        <div className="p-6 pb-4">
           <label htmlFor="decima-title" className="block text-sm font-medium text-gray-700 mb-2">
             Título de tu Décima
           </label>
@@ -198,16 +198,19 @@ export default function DecimaEditor({ editId, initialTitle = '', initialVerses 
           />
         </div>
         
-        <h2 className="text-xl font-semibold mb-4 text-gray-800 flex items-center">
-          <span>Versos</span>
-          <span className="ml-auto text-sm font-normal text-gray-500">(8 sílabas por verso)</span>
-        </h2>
+        <div className="px-6 pb-2">
+          <h2 className="text-xl font-semibold mb-4 text-gray-800 flex items-center">
+            <span>Versos</span>
+            <span className="ml-auto text-sm font-normal text-gray-500">(8 sílabas por verso)</span>
+          </h2>
+        </div>
         
-        <div className="space-y-3 flex-grow">
+        {/* No overflow-y-auto to show all verses without scrolling */}
+        <div className="px-6 pb-4 space-y-2">
           {verses.map((verse, index) => (
             <div 
               key={index} 
-              className={`flex items-center space-x-3 p-3 rounded-lg border transition-all ${
+              className={`flex items-center space-x-3 p-2 rounded-lg border transition-all ${
                 activeVerseIndex === index ? 'border-indigo-400 shadow-sm bg-indigo-50' : 'border-gray-200 hover:border-gray-300'
               }`}
               onClick={() => setActiveVerseIndex(index)}
@@ -243,65 +246,61 @@ export default function DecimaEditor({ editId, initialTitle = '', initialVerses 
         </div>
         
         {/* Word suggestions for active verse */}
-        <div className="mt-5 p-4 bg-gray-50 rounded-lg border border-gray-200">
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">Sugerencias para rimar:</h3>
-          {lastWordSuggestions.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
-              {lastWordSuggestions.map((word, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => applySuggestion(word)}
-                  className="px-3 py-1.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-800 rounded-full text-sm font-medium transition-colors"
-                >
-                  {word}
-                </button>
-              ))}
-            </div>
-          ) : (
-            <p className="text-gray-500 italic text-sm">
-              {getPatternLetter(activeVerseIndex) === getPatternLetter(activeVerseIndex).toUpperCase() 
-                ? "Escribe un verso con la misma letra en minúscula para ver sugerencias" 
-                : "Escribe algunas palabras para ver sugerencias"}
-            </p>
-          )}
-        </div>
-        
-        {/* Rhyme pattern explanation */}
-        <div className="mt-3 p-4 bg-indigo-50 rounded-lg border border-indigo-100">
-          <h3 className="text-sm font-semibold text-indigo-800 mb-2">Patrón de rima: ABBAACCDDC</h3>
-          <p className="text-indigo-700 text-sm">
-            Las letras mayúsculas y minúsculas del mismo tipo deben rimar entre sí.
-          </p>
+        <div className="px-6 pb-4">
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <h3 className="text-sm font-semibold text-gray-700 mb-3">Sugerencias para rimar:</h3>
+            {lastWordSuggestions.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {lastWordSuggestions.map((word, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => applySuggestion(word)}
+                    className="px-3 py-1.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-800 rounded-full text-sm font-medium transition-colors"
+                  >
+                    {word}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500 italic text-sm">
+                {getPatternLetter(activeVerseIndex) === getPatternLetter(activeVerseIndex).toUpperCase() 
+                  ? "Escribe un verso con la misma letra en minúscula para ver sugerencias" 
+                  : "Escribe algunas palabras para ver sugerencias"}
+              </p>
+            )}
+          </div>
         </div>
         
         {/* Save and View buttons */}
-        <div className="mt-6 flex space-x-4">
-          <button 
-            onClick={handleSave}
-            className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3 px-4 rounded-lg shadow-sm transition-colors font-medium"
-          >
-            {editId ? 'Actualizar Décima' : 'Guardar Décima'}
-          </button>
-          <button 
-            onClick={handleViewSaved}
-            className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 py-3 px-4 rounded-lg shadow-sm transition-colors font-medium border border-gray-300"
-          >
-            Ver Guardadas
-          </button>
-        </div>
-        
-        {/* Save message */}
-        {saveMessage && (
-          <div className="mt-4 p-3 bg-green-50 text-green-700 rounded-lg text-center font-medium border border-green-200">
-            {saveMessage}
+        <div className="px-6 pb-6">
+          <div className="flex space-x-4">
+            <button 
+              onClick={handleSave}
+              className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3 px-4 rounded-lg shadow-sm transition-colors font-medium"
+            >
+              {editId ? 'Actualizar Décima' : 'Guardar Décima'}
+            </button>
+            <button 
+              onClick={handleViewSaved}
+              className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 py-3 px-4 rounded-lg shadow-sm transition-colors font-medium border border-gray-300"
+            >
+              Ver Guardadas
+            </button>
           </div>
-        )}
+          
+          {/* Save message */}
+          {saveMessage && (
+            <div className="mt-4 p-3 bg-green-50 text-green-700 rounded-lg text-center font-medium border border-green-200">
+              {saveMessage}
+            </div>
+          )}
+        </div>
       </div>
       
       {/* Right side - Visualization and Preview */}
-      <div className="flex flex-col h-full bg-white rounded-xl shadow-md overflow-hidden">
+      <div className="flex flex-col bg-white rounded-xl shadow-md overflow-hidden">
         {/* Visualization */}
-        <div className="flex-1 flex items-center justify-center bg-[#0f172a] p-4">
+        <div className="flex-1 flex items-center justify-center bg-[#0f172a] p-4" style={{ minHeight: "400px" }}>
           <DecimaGraph 
             pattern={DECIMA_PATTERN} 
             verses={verses} 
@@ -309,14 +308,16 @@ export default function DecimaEditor({ editId, initialTitle = '', initialVerses 
           />
         </div>
         
-        {/* Preview */}
+        {/* Preview - Fixed to properly display line breaks */}
         <div className="p-6 bg-white border-t border-gray-200">
           <h3 className="font-semibold text-gray-800 mb-3 text-lg">
             {title ? title : 'Tu Décima'}
           </h3>
-          <pre className="whitespace-pre-wrap text-gray-800 font-sans leading-relaxed">
-            {getFormattedPreview()}
-          </pre>
+          <div className="font-sans leading-relaxed">
+            {verses.filter(v => v.trim()).map((verse, index) => (
+              <p key={index} className="mb-2 text-gray-800">{verse}</p>
+            ))}
+          </div>
         </div>
       </div>
     </div>
