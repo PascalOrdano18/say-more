@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getDecimaById } from '../../utils/storage';
 import DecimaEditor from '../../components/DecimaEditor';
+import { use } from 'react';
 
 interface EditDecimaPageProps {
   params: {
@@ -17,10 +18,13 @@ export default function EditDecimaPage({ params }: EditDecimaPageProps) {
   const [verses, setVerses] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
+  
+  // Safely access the id parameter
+  const id = use(Promise.resolve(params)).id;
 
   useEffect(() => {
     // Get the decima by ID
-    const decima = getDecimaById(params.id);
+    const decima = getDecimaById(id);
     
     if (!decima) {
       setError('No se encontró la décima solicitada');
@@ -31,7 +35,7 @@ export default function EditDecimaPage({ params }: EditDecimaPageProps) {
     setTitle(decima.title);
     setVerses(decima.verses);
     setLoading(false);
-  }, [params.id]);
+  }, [id]);
 
   // Handle back to saved
   const handleBackToSaved = () => {
@@ -72,7 +76,7 @@ export default function EditDecimaPage({ params }: EditDecimaPageProps) {
       </header>
       
       <DecimaEditor 
-        editId={params.id}
+        editId={id}
         initialTitle={title}
         initialVerses={verses}
       />
