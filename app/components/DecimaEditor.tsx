@@ -1,20 +1,30 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { countSyllablesInVerse } from '../utils/syllableCounter';
 import { getSuggestedRhymes, findRhymingWords } from '../utils/rhymeHelper';
+import { saveDecima, updateDecima } from '../utils/storage';
 import DecimaGraph from './DecimaGraph';
 
 const DECIMA_PATTERN = 'ABBAACCDDC';
 const TARGET_SYLLABLES = 8;
 
-export default function DecimaEditor() {
-  const [title, setTitle] = useState<string>('');
-  const [verses, setVerses] = useState<string[]>(Array(10).fill(''));
+interface DecimaEditorProps {
+  editId?: string;
+  initialTitle?: string;
+  initialVerses?: string[];
+}
+
+export default function DecimaEditor({ editId, initialTitle = '', initialVerses = Array(10).fill('') }: DecimaEditorProps) {
+  const router = useRouter();
+  const [title, setTitle] = useState<string>(initialTitle);
+  const [verses, setVerses] = useState<string[]>(initialVerses);
   const [syllableCounts, setSyllableCounts] = useState<number[]>(Array(10).fill(0));
   const [rhymeSuggestions, setRhymeSuggestions] = useState<Record<string, string[]>>({});
   const [activeVerseIndex, setActiveVerseIndex] = useState<number>(0);
   const [lastWordSuggestions, setLastWordSuggestions] = useState<string[]>([]);
+  const [saveMessage, setSaveMessage] = useState<string>('');
 
   // Update syllable count when verses change
   useEffect(() => {
@@ -29,6 +39,17 @@ export default function DecimaEditor() {
     updateLastWordSuggestions(activeVerseIndex);
   }, [verses, activeVerseIndex]);
 
+  // Clear save message after 3 seconds
+  useEffect(() => {
+    if (saveMessage) {
+      const timer = setTimeout(() => {
+        setSaveMessage('');
+      }, 3000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [saveMessage]);
+
   // Handle verse change
   const handleVerseChange = (index: number, value: string) => {
     const newVerses = [...verses];
@@ -39,6 +60,48 @@ export default function DecimaEditor() {
   // Handle title change
   const handleTitleChange = (value: string) => {
     setTitle(value);
+  };
+
+  // Handle save
+  const handleSave = () => {
+    // Filter out empty verses
+    const nonEmptyVerses = verses.filter(verse => verse.trim() !== '');
+    
+    // Check if we have at least one verse
+    if (nonEmptyVerses.length === 0) {
+      setSaveMessage('Por favor, escribe al menos un verso antes de guardar.');
+      return;
+    }
+    
+    try {
+      // Save or update the decima
+      if (editId) {
+        const updated = updateDecima(editId, title, verses);
+        if (updated) {
+          setSaveMessage('¡Décima actualizada con éxito! Puedes verla en "Guardadas"');
+        } else {
+          setSaveMessage('Error al actualizar la décima. Por favor, intenta de nuevo.');
+        }
+      } else {
+        const saved = saveDecima(title, verses);
+        if (saved) {
+          setSaveMessage('¡Décima guardada con éxito! Puedes verla en "Guardadas"');
+        } else {
+          setSaveMessage('Error al guardar la décima. Por favor, intenta de nuevo.');
+        }
+      }
+      
+      // Log storage status to console for debugging
+      console.log('Current storage:', localStorage.getItem('saved_decimas'));
+    } catch (error) {
+      console.error('Error saving decima:', error);
+      setSaveMessage('Ocurrió un error al guardar. ' + (error instanceof Error ? error.message : String(error)));
+    }
+  };
+
+  // Navigate to saved decimas
+  const handleViewSaved = () => {
+    router.push('/saved');
   };
 
   // Get color class based on syllable count
@@ -200,6 +263,29 @@ export default function DecimaEditor() {
                 Escribe un verso con la misma letra en minúscula para ver sugerencias
               </p>
             )}
+          </div>
+        )}
+        
+        {/* Save and View buttons */}
+        <div className="mt-4 flex space-x-3">
+          <button 
+            onClick={handleSave}
+            className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded transition-colors"
+          >
+            {editId ? 'Actualizar Décima' : 'Guardar Décima'}
+          </button>
+          <button 
+            onClick={handleViewSaved}
+            className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 py-2 px-4 rounded transition-colors"
+          >
+            Ver Guardadas
+          </button>
+        </div>
+        
+        {/* Save message */}
+        {saveMessage && (
+          <div className="mt-3 p-3 bg-green-50 text-green-700 rounded-lg text-center font-medium">
+            {saveMessage}
           </div>
         )}
       </div>
