@@ -327,18 +327,19 @@ export default function DecimaEditor({ editId, initialTitle = '', initialVerses 
       <div className="flex flex-col bg-white rounded-xl shadow-md overflow-hidden">
         {/* Visualization */}
         {activeGraph && 
-        <div className="flex-1 flex items-center justify-center bg-[#0f172a] p-4" style={{ minHeight: "400px" }}>
+        <div className="border-b border-gray-200">
           <DecimaGraph 
             pattern={DECIMA_PATTERN} 
             verses={verses} 
-            activeVerseIndex={activeVerseIndex} 
+            activeVerseIndex={activeVerseIndex}
+            onVerseClick={setActiveVerseIndex}
           />
         </div>  
         }
         
         
         {/* Preview - Fixed to properly display line breaks */}
-        <div className="p-6 bg-white border-t border-gray-200">
+        <div className={`p-6 bg-white ${activeGraph ? 'border-t border-gray-200' : ''}`}>
           <h3 className="font-semibold text-gray-800 mb-3 text-lg">
             {title ? title : 'Tu Décima'}
           </h3>

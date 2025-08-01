@@ -1,246 +1,246 @@
 'use client';
 
-import React, { useEffect, useRef, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { getWordEnding } from '../utils/rhymeHelper';
+import { countSyllablesInVerse } from '../utils/syllableCounter';
 
 interface DecimaGraphProps {
   pattern: string;
   verses: string[];
   activeVerseIndex: number;
+  onVerseClick?: (index: number) => void;
 }
 
-const DecimaGraph: React.FC<DecimaGraphProps> = ({ pattern, verses, activeVerseIndex }) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  
-  // Colors for different rhyme patterns (softer palette)
-  const colors = useMemo<Record<string, string>>(() => ({
-    'A': '#f43f5e', // Rose
-    'B': '#0ea5e9', // Sky blue
-    'C': '#8b5cf6', // Violet
+const DecimaGraph: React.FC<DecimaGraphProps> = ({ 
+  pattern, 
+  verses, 
+  activeVerseIndex, 
+  onVerseClick 
+}) => {
+  // Colors for different rhyme patterns
+  const rhymeColors = useMemo<Record<string, string>>(() => ({
+    'A': '#ef4444', // Red
+    'B': '#3b82f6', // Blue  
+    'C': '#8b5cf6', // Purple
     'D': '#f59e0b', // Amber
   }), []);
-  
-  // Extract rhyme endings for each verse
-  const getRhymeEndings = (verses: string[]): string[] => {
-    return verses.map(verse => {
+
+  // Get syllable counts for all verses
+  const syllableCounts = useMemo(() => 
+    verses.map(verse => countSyllablesInVerse(verse)), 
+    [verses]
+  );
+
+  // Get rhyme endings
+  const rhymeEndings = useMemo(() => 
+    verses.map(verse => {
       if (!verse.trim()) return '';
       const words = verse.split(' ');
       const lastWord = words[words.length - 1] || '';
       return getWordEnding(lastWord);
-    });
-  };
-  
-  // Calculate positions for each node in a circle
-  const getNodePositions = (numNodes: number, radius: number, centerX: number, centerY: number) => {
-    const positions = [];
-    for (let i = 0; i < numNodes; i++) {
-      // Start from the top (270 degrees) and go clockwise
-      const angle = (Math.PI * 2 * i / numNodes) - (Math.PI / 2);
-      const x = centerX + radius * Math.cos(angle);
-      const y = centerY + radius * Math.sin(angle);
-      positions.push({ x, y });
-    }
-    return positions;
-  };
-  
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    
-    // Set canvas dimensions with higher resolution for retina displays
-    const dpr = window.devicePixelRatio || 1;
-    const size = Math.min(window.innerWidth, 500);
-    canvas.width = size * dpr;
-    canvas.height = size * dpr;
-    canvas.style.width = `${size}px`;
-    canvas.style.height = `${size}px`;
-    ctx.scale(dpr, dpr);
-    
-    // Clear canvas
-    ctx.clearRect(0, 0, size, size);
-    
-    const centerX = size / 2;
-    const centerY = size / 2;
-    const radius = size * 0.35;
-    
-    // Get positions for each verse node
-    const positions = getNodePositions(10, radius, centerX, centerY);
-    
-    // Add background gradient
-    const gradient = ctx.createRadialGradient(
-      centerX, centerY, 0,
-      centerX, centerY, radius * 1.5
-    );
-    gradient.addColorStop(0, '#1e293b');
-    gradient.addColorStop(1, '#0f172a');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, size, size);
-    
-    // Extract rhyme endings
-    const rhymeEndings = getRhymeEndings(verses);
-    
-    // Draw connections based on rhyme pattern
-    const patternMap: Record<string, number[]> = {};
-    
-    // Group verse indices by pattern letter
+    }), 
+    [verses]
+  );
+
+  // Group verses by rhyme pattern
+  const rhymeGroups = useMemo(() => {
+    const groups: Record<string, number[]> = {};
     for (let i = 0; i < pattern.length; i++) {
       const letter = pattern[i].toUpperCase();
-      if (!patternMap[letter]) {
-        patternMap[letter] = [];
-      }
-      patternMap[letter].push(i);
+      if (!groups[letter]) groups[letter] = [];
+      groups[letter].push(i);
     }
-    
-    // Draw connections
-    for (const letter in patternMap) {
-      const indices = patternMap[letter];
-      if (indices.length > 1) {
-        const color = colors[letter] || '#999';
-        
-        // Use semi-transparent colors for connections
-        ctx.strokeStyle = color + '60'; // 40% opacity
-        ctx.lineWidth = 2;
-        
-        // Create a path for all connections of this letter
-        ctx.beginPath();
-        
-        // Draw arcs instead of straight lines for a more elegant look
-        for (let i = 0; i < indices.length; i++) {
-          for (let j = i + 1; j < indices.length; j++) {
-            const pos1 = positions[indices[i]];
-            const pos2 = positions[indices[j]];
-            
-            // Only draw connections if at least one of the verses has content
-            if (verses[indices[i]] || verses[indices[j]]) {
-              // Calculate midpoint with a slight offset for a curved line
-              const midX = (pos1.x + pos2.x) / 2;
-              const midY = (pos1.y + pos2.y) / 2;
-              const distance = Math.sqrt(Math.pow(pos2.x - pos1.x, 2) + Math.pow(pos2.y - pos1.y, 2));
-              
-              // Move toward center for a nice curve
-              const offsetX = (centerX - midX) * 0.3;
-              const offsetY = (centerY - midY) * 0.3;
-              
-              ctx.moveTo(pos1.x, pos1.y);
-              ctx.quadraticCurveTo(midX + offsetX, midY + offsetY, pos2.x, pos2.y);
-            }
-          }
-        }
-        
-        ctx.stroke();
-      }
-    }
-    
-    // Draw nodes
-    for (let i = 0; i < positions.length; i++) {
-      const { x, y } = positions[i];
-      const letter = pattern[i].toUpperCase();
-      const color = colors[letter] || '#999';
-      
-      // Draw glow for active node
-      if (i === activeVerseIndex) {
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = color;
-      } else {
-        ctx.shadowBlur = 0;
-      }
-      
-      // Draw circle with gradient
-      const circleGradient = ctx.createRadialGradient(
-        x, y, 0,
-        x, y, 25
-      );
-      
-      // Fill based on whether the verse has content and if it's active
-      if (i === activeVerseIndex) {
-        circleGradient.addColorStop(0, '#ffffff');
-        circleGradient.addColorStop(1, '#f8fafc');
-        ctx.fillStyle = circleGradient;
-        ctx.strokeStyle = color;
-        ctx.lineWidth = 3;
-      } else {
-        if (verses[i]) {
-          circleGradient.addColorStop(0, color);
-          circleGradient.addColorStop(1, shadeColor(color, -20));
-          ctx.fillStyle = circleGradient;
-        } else {
-          ctx.fillStyle = '#334155';
-        }
-        ctx.strokeStyle = '#ffffff40'; // semi-transparent white
-        ctx.lineWidth = 1.5;
-      }
-      
-      // Draw circle with antialiasing
-      ctx.beginPath();
-      ctx.arc(x, y, 23, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-      
-      // Draw number and rhyme ending
-      ctx.shadowBlur = 0;
-      ctx.fillStyle = i === activeVerseIndex ? '#334155' : '#ffffff';
-      ctx.font = 'bold 16px Inter, system-ui, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      
-      // Draw node number at top
-      ctx.fillText((i + 1).toString(), x, y - 6);
-      
-      // Draw rhyme ending at bottom if available
-      if (rhymeEndings[i]) {
-        ctx.font = '10px Inter, system-ui, sans-serif';
-        ctx.fillText(rhymeEndings[i].toUpperCase(), x, y + 8);
-      }
-    }
-    
-    // Draw title in the center
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 20px Inter, system-ui, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('DÉCIMA', centerX, centerY - 12);
-    
-    // Draw pattern below title
-    ctx.font = '16px Inter, system-ui, sans-serif';
-    ctx.fillText(pattern, centerX, centerY + 16);
-    
-    // Draw caption at the bottom
-    ctx.font = '14px Inter, system-ui, sans-serif';
-    ctx.fillStyle = '#94a3b8';
-    ctx.fillText('Visualización de rimas', centerX, centerY + radius + 35);
-    
-  }, [pattern, verses, activeVerseIndex, colors]);
-  
-  // Helper function to darken a color
-  const shadeColor = (color: string, percent: number) => {
-    let R = parseInt(color.substring(1, 3), 16);
-    let G = parseInt(color.substring(3, 5), 16);
-    let B = parseInt(color.substring(5, 7), 16);
+    return groups;
+  }, [pattern]);
 
-    R = Math.floor(R * (100 + percent) / 100);
-    G = Math.floor(G * (100 + percent) / 100);
-    B = Math.floor(B * (100 + percent) / 100);
-
-    R = R < 255 ? R : 255;
-    G = G < 255 ? G : 255;
-    B = B < 255 ? B : 255;
-
-    const RR = R.toString(16).padStart(2, '0');
-    const GG = G.toString(16).padStart(2, '0');
-    const BB = B.toString(16).padStart(2, '0');
-
-    return `#${RR}${GG}${BB}`;
+  const getVerseStatus = (index: number) => {
+    const verse = verses[index];
+    const syllables = syllableCounts[index];
+    
+    if (!verse.trim()) return 'empty';
+    if (syllables < 7) return 'short';
+    if (syllables > 9) return 'long';
+    if (syllables === 8) return 'perfect';
+    return 'close';
   };
-  
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'perfect': return 'bg-green-500';
+      case 'close': return 'bg-yellow-500';
+      case 'short': return 'bg-orange-500';
+      case 'long': return 'bg-red-500';
+      default: return 'bg-gray-300';
+    }
+  };
+
+  const completedVerses = verses.filter(v => v.trim()).length;
+  const perfectVerses = syllableCounts.filter(count => count === 8).length;
+
   return (
-    <div className="flex justify-center">
-      <canvas 
-        ref={canvasRef} 
-        className="max-w-full rounded-xl shadow-lg"
-      />
+    <div className="bg-white p-6 space-y-6">
+      {/* Header Stats */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h3 className="text-lg font-semibold text-gray-800">Progreso de la Décima</h3>
+          <p className="text-sm text-gray-600">
+            {completedVerses}/10 versos • {perfectVerses} con métrica perfecta
+          </p>
+        </div>
+        <div className="text-right">
+          <div className="text-2xl font-bold text-gray-800">{Math.round((completedVerses / 10) * 100)}%</div>
+          <div className="text-xs text-gray-500">completado</div>
+        </div>
+      </div>
+
+      {/* Progress Bar */}
+      <div className="w-full bg-gray-200 rounded-full h-2">
+        <div 
+          className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+          style={{ width: `${(completedVerses / 10) * 100}%` }}
+        ></div>
+      </div>
+
+      {/* Rhyme Pattern Legend */}
+      <div className="flex items-center justify-center space-x-6 py-2">
+        {Object.entries(rhymeGroups).map(([letter, indices]) => (
+          <div key={letter} className="flex items-center space-x-2">
+            <div 
+              className="w-3 h-3 rounded-full"
+              style={{ backgroundColor: rhymeColors[letter] }}
+            ></div>
+            <span className="text-sm font-medium text-gray-700">
+              {letter} ({indices.length})
+            </span>
+          </div>
+        ))}
+      </div>
+
+      {/* Verse Grid */}
+      <div className="grid grid-cols-5 gap-3">
+        {verses.map((verse, index) => {
+          const status = getVerseStatus(index);
+          const isActive = index === activeVerseIndex;
+          const rhymeLetter = pattern[index].toUpperCase();
+          const rhymeColor = rhymeColors[rhymeLetter];
+          
+          return (
+            <div
+              key={index}
+              className={`relative p-3 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
+                isActive 
+                  ? 'border-blue-500 bg-blue-50 shadow-md' 
+                  : 'border-gray-200 bg-gray-50 hover:border-gray-300'
+              }`}
+              onClick={() => onVerseClick?.(index)}
+            >
+              {/* Verse Number & Rhyme Letter */}
+              <div className="flex justify-between items-start mb-2">
+                <span className="text-xs font-bold text-gray-600">
+                  {index + 1}
+                </span>
+                <div className="flex items-center space-x-1">
+                  <div 
+                    className="w-2 h-2 rounded-full"
+                    style={{ backgroundColor: rhymeColor }}
+                  ></div>
+                  <span className="text-xs font-medium text-gray-600">
+                    {rhymeLetter}
+                  </span>
+                </div>
+              </div>
+
+              {/* Status Indicator */}
+              <div className="flex items-center justify-between mb-2">
+                <div className={`w-2 h-2 rounded-full ${getStatusColor(status)}`}></div>
+                <span className="text-xs text-gray-500">
+                  {syllableCounts[index]} sílabas
+                </span>
+              </div>
+
+              {/* Verse Preview or Empty State */}
+              {verse.trim() ? (
+                <div className="space-y-1">
+                  <p className="text-xs text-gray-700 line-clamp-2 leading-tight">
+                    {verse.substring(0, 40)}{verse.length > 40 ? '...' : ''}
+                  </p>
+                  {rhymeEndings[index] && (
+                    <p className="text-xs text-gray-500 font-medium">
+                      -{rhymeEndings[index]}
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-2">
+                  <div className="w-8 h-8 mx-auto border-2 border-dashed border-gray-300 rounded-full flex items-center justify-center">
+                    <span className="text-gray-400 text-xs">+</span>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-1">Vacío</p>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Rhyme Groups Visualization */}
+      <div className="space-y-3">
+        <h4 className="text-sm font-medium text-gray-700">Grupos de Rima</h4>
+        {Object.entries(rhymeGroups).map(([letter, indices]) => (
+          <div key={letter} className="flex items-center space-x-2">
+            <div 
+              className="w-4 h-4 rounded flex items-center justify-center text-white text-xs font-bold"
+              style={{ backgroundColor: rhymeColors[letter] }}
+            >
+              {letter}
+            </div>
+            <div className="flex-1 flex space-x-1">
+              {indices.map(i => (
+                <div
+                  key={i}
+                  className={`px-2 py-1 rounded text-xs ${
+                    verses[i].trim() 
+                      ? 'bg-gray-100 text-gray-700' 
+                      : 'bg-gray-50 text-gray-400 border border-dashed border-gray-300'
+                  } ${i === activeVerseIndex ? 'ring-2 ring-blue-500' : ''}`}
+                  onClick={() => onVerseClick?.(i)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  {i + 1}
+                  {rhymeEndings[i] && (
+                    <span className="ml-1 text-gray-500">
+                      -{rhymeEndings[i]}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Status Legend */}
+      <div className="border-t pt-4">
+        <h4 className="text-sm font-medium text-gray-700 mb-2">Estado de Métrica</h4>
+        <div className="flex flex-wrap gap-4 text-xs">
+          <div className="flex items-center space-x-2">
+            <div className="w-2 h-2 rounded-full bg-green-500"></div>
+            <span>8 sílabas (perfecto)</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+            <span>7 o 9 sílabas (aceptable)</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+            <span>Muy pocas sílabas</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-2 h-2 rounded-full bg-red-500"></div>
+            <span>Demasiadas sílabas</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
