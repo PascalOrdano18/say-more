@@ -14,17 +14,20 @@ interface DecimaEditorProps {
   editId?: string;
   initialTitle?: string;
   initialVerses?: string[];
+  initialDescription?: string;
 }
 
-export default function DecimaEditor({ editId, initialTitle = '', initialVerses = Array(10).fill('') }: DecimaEditorProps) {
+export default function DecimaEditor({ editId, initialTitle = '', initialVerses = Array(10).fill(''), initialDescription = '' }: DecimaEditorProps) {
   const router = useRouter();
   const [title, setTitle] = useState<string>(initialTitle);
   const [verses, setVerses] = useState<string[]>(initialVerses.length === 10 ? initialVerses : Array(10).fill(''));
+  const [description, setDescription] = useState<string>(initialDescription);
   const [syllableCounts, setSyllableCounts] = useState<number[]>(Array(10).fill(0));
   const [rhymeSuggestions, setRhymeSuggestions] = useState<Record<string, string[]>>({});
   const [activeVerseIndex, setActiveVerseIndex] = useState<number>(0);
   const [lastWordSuggestions, setLastWordSuggestions] = useState<string[]>([]);
   const [saveMessage, setSaveMessage] = useState<string>('');
+  const [activeGraph, setActiveGraph] = useState<boolean>(true);
 
   // Update syllable count when verses change
   useEffect(() => {
@@ -62,6 +65,11 @@ export default function DecimaEditor({ editId, initialTitle = '', initialVerses 
     setTitle(value);
   };
 
+  const handleDescriptionChange = (value: string) => {
+    console.log(description);
+    setDescription(value);
+  }
+
   // Handle save
   const handleSave = () => {
     // Filter out empty verses
@@ -76,14 +84,14 @@ export default function DecimaEditor({ editId, initialTitle = '', initialVerses 
     try {
       // Save or update the decima
       if (editId) {
-        const updated = updateDecima(editId, title, verses);
+        const updated = updateDecima(editId, title, verses, description);
         if (updated) {
           setSaveMessage('¡Décima actualizada con éxito! Puedes verla en "Guardadas"');
         } else {
           setSaveMessage('Error al actualizar la décima. Por favor, intenta de nuevo.');
         }
       } else {
-        const saved = saveDecima(title, verses);
+        const saved = saveDecima(title, verses, description);
         if (saved) {
           setSaveMessage('¡Décima guardada con éxito! Puedes verla en "Guardadas"');
         } else {
@@ -185,9 +193,17 @@ export default function DecimaEditor({ editId, initialTitle = '', initialVerses 
       <div className="flex flex-col bg-white rounded-xl shadow-md">
         {/* Title input */}
         <div className="p-6 pb-4">
-          <label htmlFor="decima-title" className="block text-sm font-medium text-gray-700 mb-2">
-            Título de tu Décima
-          </label>
+          <div className='w-full grid grid-cols-2'>
+            <label htmlFor="decima-title" className="block text-sm font-medium text-gray-700 mb-2">
+              Título de tu Décima
+            </label>
+            <button 
+              className='px-3 py-2 rounded-md text-sm font-medium bg-indigo-100 text-indigo-700 hover:text-gray-700 hover:bg-gray-100 transition-all hover:cursor-pointer'
+              onClick={() => setActiveGraph(!activeGraph)}
+              >
+              Grafo
+            </button>
+          </div>
           <input
             id="decima-title"
             type="text"
@@ -244,9 +260,18 @@ export default function DecimaEditor({ editId, initialTitle = '', initialVerses 
             </div>
           ))}
         </div>
+
+         <div className='text-black mx-6 my-4'>
+          <h2 className='text-lg align-middle text-center underline'>DESCRIPCION</h2>
+            <textarea 
+              className='w-full h-full text-black border-2 border-black rounded-lg p-2' 
+              onChange={(e) => handleDescriptionChange(e.target.value)} 
+              />
+          </div>
+ 
         
         {/* Word suggestions for active verse */}
-        <div className="px-6 pb-4">
+        <div className="px-6 pb-4 mt-10">
           <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
             <h3 className="text-sm font-semibold text-gray-700 mb-3">Sugerencias para rimar:</h3>
             {lastWordSuggestions.length > 0 ? (
@@ -270,6 +295,7 @@ export default function DecimaEditor({ editId, initialTitle = '', initialVerses 
             )}
           </div>
         </div>
+      
         
         {/* Save and View buttons */}
         <div className="px-6 pb-6">
@@ -300,13 +326,16 @@ export default function DecimaEditor({ editId, initialTitle = '', initialVerses 
       {/* Right side - Visualization and Preview */}
       <div className="flex flex-col bg-white rounded-xl shadow-md overflow-hidden">
         {/* Visualization */}
+        {activeGraph && 
         <div className="flex-1 flex items-center justify-center bg-[#0f172a] p-4" style={{ minHeight: "400px" }}>
           <DecimaGraph 
             pattern={DECIMA_PATTERN} 
             verses={verses} 
             activeVerseIndex={activeVerseIndex} 
           />
-        </div>
+        </div>  
+        }
+        
         
         {/* Preview - Fixed to properly display line breaks */}
         <div className="p-6 bg-white border-t border-gray-200">

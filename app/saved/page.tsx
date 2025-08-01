@@ -106,6 +106,7 @@ export default function SavedDecimas() {
                     </p>
                   )}
                 </div>
+                <p className='text-black my-5'>{decima.description}</p>
               </div>
               
               <div className="p-5 bg-gray-50 max-h-48 overflow-y-auto">

@@ -38,17 +38,6 @@ export default function Navbar() {
             >
               Guardadas
             </Link>
-            
-            <Link 
-              href="/debug" 
-              className={`px-3 py-2 rounded-md text-sm font-medium ${
-                pathname === '/debug' 
-                  ? 'bg-indigo-100 text-indigo-700' 
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-            >
-              Debug
-            </Link>
           </div>
         </div>
       </div>

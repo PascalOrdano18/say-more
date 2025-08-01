@@ -3,6 +3,7 @@ export interface SavedDecima {
   id: string;
   title: string;
   verses: string[];
+  description: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -29,7 +30,7 @@ export function getSavedDecimas(): SavedDecima[] {
 }
 
 // Save a new decima
-export function saveDecima(title: string, verses: string[]): SavedDecima {
+export function saveDecima(title: string, verses: string[], description: string): SavedDecima {
   const decimas = getSavedDecimas();
   
   // Create a new decima object
@@ -37,6 +38,7 @@ export function saveDecima(title: string, verses: string[]): SavedDecima {
     id: generateId(),
     title: title || 'Décima sin título',
     verses: verses.filter(verse => verse.trim() !== ''),
+    description: description || 'Decima sin descripcion',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };
@@ -49,7 +51,7 @@ export function saveDecima(title: string, verses: string[]): SavedDecima {
 }
 
 // Update an existing decima
-export function updateDecima(id: string, title: string, verses: string[]): SavedDecima | null {
+export function updateDecima(id: string, title: string, verses: string[], description: string): SavedDecima | null {
   const decimas = getSavedDecimas();
   const index = decimas.findIndex(d => d.id === id);
   
@@ -62,6 +64,7 @@ export function updateDecima(id: string, title: string, verses: string[]): Saved
     ...decimas[index],
     title: title || decimas[index].title,
     verses: verses.filter(verse => verse.trim() !== ''),
+    description: description || decimas[index].description,
     updatedAt: new Date().toISOString()
   };
   
