@@ -340,9 +340,29 @@ export default function DecimaEditor({ editId, initialTitle = '', initialVerses 
         
         {/* Preview - Fixed to properly display line breaks */}
         <div className={`p-6 bg-white ${activeGraph ? 'border-t border-gray-200' : ''}`}>
-          <h3 className="font-semibold text-gray-800 mb-3 text-lg">
-            {title ? title : 'Tu Décima'}
-          </h3>
+          <div className="flex justify-between items-center mb-3">
+            <h3 className="font-semibold text-gray-800 text-lg">
+              {title ? title : 'Tu Décima'}
+            </h3>
+            <button
+              onClick={() => setActiveGraph(!activeGraph)}
+              className="flex items-center space-x-2 px-3 py-1 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-md transition-colors"
+            >
+              <svg 
+                className="w-4 h-4" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                {activeGraph ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L8.464 8.464M9.878 9.878a3 3 0 105.303 5.303m0 0L8.464 8.464m5.303 5.303a3 3 0 01-4.243-4.243m0 0L8.464 8.464" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                )}
+              </svg>
+              <span>{activeGraph ? 'Ocultar gráfico' : 'Mostrar gráfico'}</span>
+            </button>
+          </div>
           <div className="font-sans leading-relaxed">
             {verses.filter(v => v.trim()).map((verse, index) => (
               <p key={index} className="mb-2 text-gray-800">{verse}</p>
