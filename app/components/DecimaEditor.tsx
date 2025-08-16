@@ -188,17 +188,17 @@ export default function DecimaEditor({ editId, initialTitle = '', initialVerses 
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div className="min-h-screen grid grid-cols-1 md:grid-cols-2 gap-6 p-4">
       {/* Left side - Verses input */}
-      <div className="flex flex-col bg-white rounded-xl shadow-md">
+      <div className="flex flex-col bg-white rounded-xl shadow-md h-fit max-h-screen overflow-y-auto">
         {/* Title input */}
-        <div className="p-6 pb-4">
+        <div className="p-4 pb-2">
           <div className='w-full grid grid-cols-2'>
             <label htmlFor="decima-title" className="block text-sm font-medium text-gray-700 mb-2">
               Título de tu Décima
             </label>
             <button 
-              className='px-3 py-2 rounded-md text-sm font-medium bg-indigo-100 text-indigo-700 hover:text-gray-700 hover:bg-gray-100 transition-all hover:cursor-pointer'
+              className='px-2 py-1 rounded-md text-xs font-medium bg-indigo-100 text-indigo-700 hover:text-gray-700 hover:bg-gray-100 transition-all hover:cursor-pointer'
               onClick={() => setActiveGraph(!activeGraph)}
               >
               Grafo
@@ -210,28 +210,28 @@ export default function DecimaEditor({ editId, initialTitle = '', initialVerses 
             value={title}
             onChange={(e) => handleTitleChange(e.target.value)}
             placeholder="Escribe un título para tu décima"
-            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 text-black shadow-sm"
+            className="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-1 focus:ring-indigo-400 focus:border-indigo-400 text-black shadow-sm"
           />
         </div>
         
-        <div className="px-6 pb-2">
-          <h2 className="text-xl font-semibold mb-4 text-gray-800 flex items-center">
+        <div className="px-4 pb-1">
+          <h2 className="text-lg font-semibold mb-2 text-gray-800 flex items-center">
             <span>Versos</span>
-            <span className="ml-auto text-sm font-normal text-gray-500">(8 sílabas por verso)</span>
+            <span className="ml-auto text-xs font-normal text-gray-500">(8 sílabas por verso)</span>
           </h2>
         </div>
         
-        {/* No overflow-y-auto to show all verses without scrolling */}
-        <div className="px-6 pb-4 space-y-2">
+        {/* Compact verse layout to fit all on screen */}
+        <div className="px-4 pb-2 space-y-1">
           {verses.map((verse, index) => (
             <div 
               key={index} 
-              className={`flex items-center space-x-3 p-2 rounded-lg border transition-all ${
+              className={`flex items-center space-x-2 p-1.5 rounded-md border transition-all ${
                 activeVerseIndex === index ? 'border-indigo-400 shadow-sm bg-indigo-50' : 'border-gray-200 hover:border-gray-300'
               }`}
               onClick={() => setActiveVerseIndex(index)}
             >
-              <span className={`font-mono text-sm font-bold w-7 h-7 flex items-center justify-center ${getPatternColor(index)} rounded-full shadow-sm`}>
+              <span className={`font-mono text-xs font-bold w-6 h-6 flex items-center justify-center ${getPatternColor(index)} rounded-full shadow-sm`}>
                 {getPatternLetter(index)}
               </span>
               
@@ -241,12 +241,12 @@ export default function DecimaEditor({ editId, initialTitle = '', initialVerses 
                   value={verse}
                   onChange={(e) => handleVerseChange(index, e.target.value)}
                   placeholder={`Verso ${index + 1}`}
-                  className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 text-black"
+                  className="w-full p-1.5 text-sm border border-gray-300 rounded-md focus:ring-1 focus:ring-indigo-400 focus:border-indigo-400 text-black"
                   onFocus={() => setActiveVerseIndex(index)}
                 />
               </div>
               
-              <span className={`w-7 h-7 flex items-center justify-center rounded-full ${
+              <span className={`w-6 h-6 flex items-center justify-center rounded-full text-xs ${
                 syllableCounts[index] === TARGET_SYLLABLES 
                   ? 'bg-green-100 text-green-800' 
                   : syllableCounts[index] > TARGET_SYLLABLES 
@@ -261,33 +261,34 @@ export default function DecimaEditor({ editId, initialTitle = '', initialVerses 
           ))}
         </div>
 
-         <div className='text-black mx-6 my-4'>
-          <h2 className='text-lg align-middle text-center underline'>DESCRIPCION</h2>
+                  <div className='text-black mx-4 my-2'>
+          <h2 className='text-sm font-medium text-gray-700 mb-1'>Descripción</h2>
             <textarea 
-              className='w-full h-full text-black border-2 border-black rounded-lg p-2' 
+              className='w-full h-16 text-sm text-black border border-gray-300 rounded-md p-2 resize-none' 
+              placeholder="Descripción opcional de tu décima..."
               onChange={(e) => handleDescriptionChange(e.target.value)} 
               />
           </div>
- 
+
         
-        {/* Word suggestions for active verse */}
-        <div className="px-6 pb-4 mt-10">
-          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-            <h3 className="text-sm font-semibold text-gray-700 mb-3">Sugerencias para rimar:</h3>
+        {/* Word suggestions for active verse - Compact */}
+        <div className="px-4 pb-3 mt-2">
+          <div className="p-3 bg-gray-50 rounded-md border border-gray-200">
+            <h3 className="text-xs font-medium text-gray-700 mb-2">Sugerencias para rimar:</h3>
             {lastWordSuggestions.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {lastWordSuggestions.map((word, idx) => (
+              <div className="flex flex-wrap gap-1">
+                {lastWordSuggestions.slice(0, 6).map((word, idx) => (
                   <button
                     key={idx}
                     onClick={() => applySuggestion(word)}
-                    className="px-3 py-1.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-800 rounded-full text-sm font-medium transition-colors"
+                    className="px-2 py-1 bg-indigo-100 hover:bg-indigo-200 text-indigo-800 rounded text-xs font-medium transition-colors"
                   >
                     {word}
                   </button>
                 ))}
               </div>
             ) : (
-              <p className="text-gray-500 italic text-sm">
+              <p className="text-gray-500 italic text-xs">
                 {getPatternLetter(activeVerseIndex) === getPatternLetter(activeVerseIndex).toUpperCase() 
                   ? "Escribe un verso con la misma letra en minúscula para ver sugerencias" 
                   : "Escribe algunas palabras para ver sugerencias"}
@@ -298,7 +299,7 @@ export default function DecimaEditor({ editId, initialTitle = '', initialVerses 
       
         
         {/* Save and View buttons */}
-        <div className="px-6 pb-6">
+        <div className="px-4 pb-4">
           <div className="flex space-x-4">
             <button 
               onClick={handleSave}
@@ -324,7 +325,7 @@ export default function DecimaEditor({ editId, initialTitle = '', initialVerses 
       </div>
       
       {/* Right side - Visualization and Preview */}
-      <div className="flex flex-col bg-white rounded-xl shadow-md overflow-hidden">
+      <div className="flex flex-col bg-white rounded-xl shadow-md overflow-hidden h-fit max-h-screen">
         {/* Visualization */}
         {activeGraph && 
         <div className="border-b border-gray-200">

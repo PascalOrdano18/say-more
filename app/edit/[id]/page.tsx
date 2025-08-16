@@ -1,25 +1,26 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { getDecimaById } from '../../utils/storage';
 import DecimaEditor from '../../components/DecimaEditor';
 
 interface EditDecimaPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default function EditDecimaPage({ params }: EditDecimaPageProps) {
   const router = useRouter();
   const [title, setTitle] = useState<string>('');
   const [verses, setVerses] = useState<string[]>([]);
+  const [description, setDescription] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
   
-  // Access the id directly
-  const id = params.id;
+  // Unwrap the params Promise using React.use()
+  const { id } = use(params);
 
   useEffect(() => {
     // Get the decima by ID
@@ -33,6 +34,7 @@ export default function EditDecimaPage({ params }: EditDecimaPageProps) {
     
     setTitle(decima.title);
     setVerses(decima.verses);
+    setDescription(decima.description || '');
     setLoading(false);
   }, [id]);
 
@@ -78,6 +80,7 @@ export default function EditDecimaPage({ params }: EditDecimaPageProps) {
         editId={id}
         initialTitle={title}
         initialVerses={verses}
+        initialDescription={description}
       />
     </div>
   );
